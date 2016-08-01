@@ -42,7 +42,8 @@ class App extends Component {
 		});
 	}
 
-	rateSpeech = () => {
+	rateSpeech = (e) => {
+		e.preventDefault();
 		console.log('you rated this speech ' + this.state.currRating);
 		this.setState({
 			completed: false
@@ -59,7 +60,7 @@ class App extends Component {
 
 	render = () => {
 		var completed = this.state.completed ?
-			<form ref='ratingForm' onSubmit={this.rateSpeech}>
+			<form ref='ratingForm' onSubmit={this.state.currRating !== -1 ? this.rateSpeech : (e) => { e.preventDefault(); }}>
 				{_.map(_.range(1, 6), index => {
 					return <div><input key={index} style={{display: 'inline-block'}} type='radio' name='rating' value={index} onChange={this.changeRating} />{index} <br /></div>;
 				})}
