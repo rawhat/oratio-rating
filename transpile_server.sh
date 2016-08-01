@@ -1,0 +1,1 @@
+babel --plugins transform-async-to-generator --watch server.js --out-file server.comp.js

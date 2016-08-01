@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars no-console */
 
-
 var Promise = require('bluebird');
 var mongoose = Promise.promisifyAll(require('mongoose'));
 mongoose.connect('mongodb://localhost/oratio');
