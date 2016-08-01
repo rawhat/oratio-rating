@@ -1,0 +1,12 @@
+doctype html
+html
+	head
+		link(rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous")
+		script(src="/js/xhr-browser.js")
+	body
+		.container-fluid
+			.col-md-6.col-md-offset-3
+				form
+					input.form-control#username(type="text", placeholder="Username")
+					input.form-control#password(type="password", placeholder="Password")
+					button.btn.btn-primary(type="submit") Login
