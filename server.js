@@ -5,16 +5,20 @@ var mongoose = Promise.promisifyAll(require('mongoose'));
 mongoose.connect('mongodb://localhost/oratio');
 
 var Schema = mongoose.Schema;
-var passportLocalMongoose = require('passport-local-mongoose');
 
 var userSchema = new Schema({
 	username: String,
-	password: String,
-	email: String,
-	ratedSpeeches: Array
+	ratedSpeeches: Array,
+	skippedSpeeches: Array
 });
-userSchema.plugin(passportLocalMongoose);
+
+var songSchema = new Schema({
+	url: String,
+	ratings: Array
+});
+
 var User = mongoose.model('User', userSchema);
+var Song = mongoose.model('Song', songSchema);
 
 var db = mongoose.connection;
 
@@ -32,43 +36,61 @@ app.use(views(__dirname + '/views', {
 var body = require('koa-better-body');
 app.use(convert(body()));
 
-var session = require('koa-session');
-app.keys = ['bzAPm06LclTiZAhGjLKHH8QsC86nfcCraaISyCs+SbDJ5x33H6U7diS8NIQrCulWTXw='];
-app.use(convert(session(app)));
-
-var passport = require('koa-passport');
-
-passport.use(User.createStrategy());
-passport.serializeUser(User.serializeUser());
-passport.deserializeUser(User.deserializeUser());
-
-app.use(passport.initialize());
-app.use(passport.session());
-
 var router = require('koa-router')();
 var serve = require('koa-static');
 
+//var history = convert(require('koa-connect-history-api-fallback'));
+//app.use(history());
+
 router
-	.get('/', async (ctx, next) => {
-		await ctx.render('index.pug');
+	.post('/login', async (ctx, ) => {
+		// get username from request and set cookie
+		try {
+			let username = JSON.parse(ctx.body).username;
+			ctx.cookies.set('username', username);
+			ctx.response.status = 200;
+		}
+		catch (e) {
+			ctx.body = e;
+		}
 	})
-	.get('/user', async (ctx, next) => {
-		await ctx.render('login.pug');
+	.get('/song', async (ctx, ) => {
+		// mongoose call -- get random song not voted on
+		// let currUser = ctx.cookies.get('username');
+		// 
+		ctx.body = {
+			id: 0,
+			url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
+			ratings: [],
+			skipCount: 0
+		};
 	})
-	.put('/user', async (ctx, next) => {
-		await console.log(ctx.body);
+	// rate song
+	.put('/song', async (ctx, ) => {
+		let payload = JSON.parse(ctx.body);
+		console.log(payload);
+		// mongoose call -- rate song
+		ctx.response.status = 202;
 	})
-	.post('/login', async (ctx, next) => {
-		await console.log(ctx.body);
-	})
-	.get('/home', async (ctx, next) => {
-		await ctx.render('home.pug');
+	// skip song
+	.post('/song', async (ctx, ) => {
+		let payload = JSON.parse(ctx.body);
+		console.log(payload);
+		// mongoose call -- skip song
+		ctx.response.status = 202;
 	});
-	//
+
+app.use(convert(serve('./static')));
+
+router.get('/(.*)/', async (ctx, ) => {
+		await ctx.render('index.pug', {
+			username: ctx.cookies.get('username')
+		});
+	});
 
 app.use(router.routes());
 app.use(router.allowedMethods());
 
-app.use(convert(serve('./static')));
+
 
 app.listen(8080);
