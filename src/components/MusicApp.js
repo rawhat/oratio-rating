@@ -52,7 +52,7 @@ export default class MusicApp extends Component {
 		e.preventDefault();
 		console.log('you rated this speech ' + this.state.currRating);
 
-		let rate = request('POST', '/song', { user: global.username, song: this.state.currentSong });
+		let rate = request('PUT', '/song', { song: this.state.currentSong, rating: this.state.currRating });
 		let response = await rate;
 
 		console.log(response);
@@ -74,18 +74,33 @@ export default class MusicApp extends Component {
 
 	getNextSpeech = async () => {
 		// make API call
-		this.getSpeech = request('GET', '/song');
-		let response = await this.getSpeech;
-		let json = await JSON.parse(response);
-		this.setState({
-			currentSong: json
-		}, () => {
-			this.refs.audio.play();
-		});
+		try {
+			this.getSpeech = request('GET', '/song');
+			let response = await this.getSpeech;
+			let json = await JSON.parse(response);
+			if(json){
+				this.setState({
+					currentSong: json
+				}, () => {
+					this.refs.audio.play();
+				});
+			}
+		}
+		catch (e) {
+			this.setState({
+				currentSong: {}
+			}, () => {
+				this.refs.audio.src = '';
+			});
+		}
 	}
 
 	skipSpeech = async () => {
-
+		this.skipSpeechReq = request('POST', '/song', { song: this.state.currentSong });
+		let response = await this.skipSpeechReq;
+		if(response === 200) {
+			this.getNextSpeech();
+		}
 	}
 
 	render = () => {

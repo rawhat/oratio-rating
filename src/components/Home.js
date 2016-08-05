@@ -13,6 +13,12 @@ const home = class Home extends Component {
 		};
 	}
 
+	componentDidMount = () => {
+		if(global.username) {
+			this.props.router.replace('/home/');
+		}
+	}
+
 	login = async (e) => {
 		e.preventDefault();
 		this.login = request('POST', '/login', { username: this.refs.username.value });

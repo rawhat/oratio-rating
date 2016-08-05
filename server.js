@@ -1,96 +1,223 @@
 /* eslint-disable no-unused-vars no-console */
 
-var Promise = require('bluebird');
-var mongoose = Promise.promisifyAll(require('mongoose'));
-mongoose.connect('mongodb://localhost/oratio');
+const Promise = require('bluebird');
+const mongoose = require('mongoose');
 
-var Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-var userSchema = new Schema({
+const userSchema = new Schema({
 	username: String,
 	ratedSpeeches: Array,
 	skippedSpeeches: Array
 });
 
-var songSchema = new Schema({
+const speechSchema = new Schema({
 	url: String,
 	ratings: Array
 });
 
-var User = mongoose.model('User', userSchema);
-var Song = mongoose.model('Song', songSchema);
+const User = mongoose.model('User', userSchema);
+const Speech = mongoose.model('Speech', speechSchema);
 
-var db = mongoose.connection;
+mongoose.Promise = Promise;
+mongoose.connect('mongodb://localhost/oratio');
+const db = mongoose.connection;
 
-var Koa = require('koa');
-var app = new Koa();
-var convert = require('koa-convert');
+db.on('error', err => {
+	console.error(err);
+});
 
-var views = require('koa-views');
-app.use(views(__dirname + '/views', {
-	map: {
-		pug: 'pug'
-	}
-}));
+db.once('open', async () => {
+	console.log('Connected to mongodb.');
 
-var body = require('koa-better-body');
-app.use(convert(body()));
+	// remove this
+	await Speech.remove({});
+	let allSpeeches = await Speech.find({});
+	console.log(allSpeeches);
 
-var router = require('koa-router')();
-var serve = require('koa-static');
+	let newSpeech = new Speech({
+		url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
+		ratings: [],
+		skipCount: 0
+	});
 
-//var history = convert(require('koa-connect-history-api-fallback'));
-//app.use(history());
+	await newSpeech.save();
 
-router
-	.post('/login', async (ctx, ) => {
-		// get username from request and set cookie
-		try {
-			let username = JSON.parse(ctx.body).username;
-			ctx.cookies.set('username', username);
+	// Speech.findOneAndUpdate({
+	// 	url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3'
+	// }, {
+	// 	id: 0,
+	// 	url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
+	// 	ratings: [],
+	// 	skipCount: 0
+	// }, { upsert: true });
+
+	const Koa = require('koa'); 
+	const app = new Koa();
+	const convert = require('koa-convert');
+
+	const views = require('koa-views');
+	app.use(views(__dirname + '/views', {
+		map: {
+			pug: 'pug'
+		}
+	}));
+
+	const body = require('koa-better-body');
+	app.use(convert(body()));
+
+	const router = require('koa-router')();
+	const serve = require('koa-static');
+
+	router
+		.post('/login', async (ctx) => {
+			// get username from request and set cookie
+			try {
+				let username = JSON.parse(ctx.body).username;
+				ctx.cookies.set('username', username);
+
+				let userExists = await User.findOne({
+					username
+				});
+
+				if(!userExists) {
+					console.log('creating new user');
+					let newUser = new User({
+						username
+					});
+
+					await newUser.save();
+				}
+				else {
+					console.log('clearing user ratings');
+					await User.findOneAndUpdate({
+						username
+					}, { ratedSpeeches: [] });
+				}
+
+				ctx.response.status = 200;
+			}
+			catch (e) {
+				ctx.body = e;
+			}
+		})
+		.post('/logout', async (ctx) => {
+			ctx.cookies.set('username', '');
 			ctx.response.status = 200;
-		}
-		catch (e) {
-			ctx.body = e;
-		}
-	})
-	.get('/song', async (ctx, ) => {
-		// mongoose call -- get random song not voted on
-		// let currUser = ctx.cookies.get('username');
-		// 
-		ctx.body = {
-			id: 0,
-			url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
-			ratings: [],
-			skipCount: 0
-		};
-	})
-	// rate song
-	.put('/song', async (ctx, ) => {
-		let payload = JSON.parse(ctx.body);
-		console.log(payload);
-		// mongoose call -- rate song
-		ctx.response.status = 202;
-	})
-	// skip song
-	.post('/song', async (ctx, ) => {
-		let payload = JSON.parse(ctx.body);
-		console.log(payload);
-		// mongoose call -- skip song
-		ctx.response.status = 202;
-	});
+		})
+		.get('/song', async (ctx) => {
+			// mongoose call -- get random song not voted on
+			try {
+				let username = ctx.cookies.get('username');
+				//let allUsers = await User.find({});
+				//console.log(allUsers);
 
-app.use(convert(serve('./static')));
+				let currUser = await User.findOne({
+					username
+				});
 
-router.get('/(.*)/', async (ctx, ) => {
-		await ctx.render('index.pug', {
-			username: ctx.cookies.get('username')
+				console.log(currUser);
+
+				let ratedSpeeches = currUser.ratedSpeeches || [];
+
+				let nextSpeech = await Speech.findOne({
+					_id: { $nin: ratedSpeeches }
+				});
+
+				if(!nextSpeech){
+					ctx.body = '';
+				}
+				else {
+					ctx.body = nextSpeech;
+				}
+			}
+			catch(e) {
+				console.error(e);
+				ctx.body = e;
+			}
+
+			/*ctx.body = {
+				id: 0,
+				url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
+				ratings: [],
+				skipCount: 0
+			};*/
+		})
+		// rate song
+		.put('/song', async (ctx) => {
+			try {
+				/*
+				** {
+				**		song: {}
+				**		rating: -1
+				** }
+				*/
+				let payload = JSON.parse(ctx.body);
+				// console.log(payload);
+				// mongoose call -- rate song
+				await Promise.all([
+					Speech.findOneAndUpdate({
+						_id: payload.song.id
+					}, {
+						$push: { ratings: payload.rating }
+					}),
+					User.findOneAndUpdate({
+						username: ctx.cookies.get('username')
+					}, {
+						$push: { ratedSpeeches: payload.song._id }
+					})
+				]);
+
+				let allSpeeches = await Speech.find({});
+				let allUsers = await User.find({});
+
+				console.log('speeches', allSpeeches);
+				console.log('users', allUsers);
+
+				ctx.response.status = 202;
+				ctx.body = '';
+			}
+			catch (e) {
+				ctx.body = e;
+			}
+		})
+		// skip song
+		.post('/song', async (ctx) => {
+			try {
+				let payload = JSON.parse(ctx.body);
+				// console.log(payload);
+				// mongoose call -- skip song
+				await Promise.all([
+					Speech.findOneAndUpdate({
+						_id: payload.song.id
+					}, {
+						$inc: { skipCount: 1 }
+					}, { upsert: true }),
+					User.findOneAndUpdate({
+						username: ctx.cookies.get('username')
+					}, {
+						$push: { skippedSpeeches: payload.song._id }
+					}, { upsert: true })
+				]);
+				ctx.response.status = 202;
+			}
+			catch (e) {
+				ctx.body = e;
+			}
 		});
-	});
 
-app.use(router.routes());
-app.use(router.allowedMethods());
+	app.use(convert(serve('./static')));
+
+	router.get('/(.*)/', async (ctx) => {
+			await ctx.render('index.pug', {
+				username: ctx.cookies.get('username')
+			});
+		});
+
+	app.use(router.routes());
+	app.use(router.allowedMethods());
 
 
 
-app.listen(8080);
+	app.listen(8080);
+});
