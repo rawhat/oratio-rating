@@ -9,18 +9,18 @@ Oratio Speech Rating Interface
 #### 3. Usage information
 
 ### 1. Technologies
-	+ koa2
-	+ bluebird
-	+ lodash
-	+ mongoose
-	+ passport
-	+ react
-	+ pug
+  * koa2
+  * bluebird
+  * lodash
+  * mongoose
+  * passport
+  * react
+  * pug
    
 ### 2. Build settings
-	+ `./transpile_server.sh`
-	+ `./transpile_app.sh`
-	+ `nodemon server.comp.js`
+  * `./transpile_server.sh`
+  * `./transpile_app.sh`
+  * `nodemon server.comp.js`
 	
 ### 3. Usage information
 	Point your browser to `http://localhost:8080/` to access the app.
