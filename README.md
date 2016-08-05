@@ -4,9 +4,9 @@ Oratio Speech Rating Interface
 # Oratio Web Rating Readme
 
 ### Contents
-#### 1. Technologies
-#### 2. Build settings
-#### 3. Usage information
+1. Technologies
+2. Build settings
+3. Usage information
 
 ### 1. Technologies
   * koa2
