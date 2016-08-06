@@ -10,13 +10,13 @@ Oratio Speech Rating Interface
 4. Usage information
 
 ### 1. Technologies
-  * koa2
-  * bluebird
-  * lodash
-  * mongoose
-  * passport
-  * react
-  * pug
+  * [koa2](https://github.com/koajs/koa)
+  * [bluebird](http://bluebirdjs.com/)
+  * [lodash](https://lodash.com/)
+  * [mongoose](http://mongoosejs.com/)
+  * [passport](http://passportjs.org/)
+  * [react](https://facebook.github.io/react/)
+  * [pug](https://github.com/pugjs/pug)
    
 ### 2. Dependencies
   * NodeJS v6+
