@@ -25,6 +25,9 @@ export default class MusicApp extends Component {
 	}
 
 	componentDidMount = () => {
+		/*if(!global.username)
+			this.props.router.replace('/');*/
+
 		this.endedListener = this.refs.audio.addEventListener('ended', () => {
 			console.log('the song has ended');
 			this.audioCompleted();
@@ -32,7 +35,8 @@ export default class MusicApp extends Component {
 	}
 
 	componentWillUnmount = () => {
-		this.refs.audio.removeEventListener(this.endedListener);
+		if(this.refs.audio)
+			this.refs.audio.removeEventListener(this.endedListener);
 	}
 
 	audioCompleted = () => {
@@ -75,10 +79,14 @@ export default class MusicApp extends Component {
 	getNextSpeech = async () => {
 		// make API call
 		try {
+			this.refs.audio.pause();
+			this.refs.audio.src = '';
+
 			this.getSpeech = request('GET', '/song');
 			let response = await this.getSpeech;
 			let json = await JSON.parse(response);
 			if(json){
+				//this.refs.audio.src = json.url;
 				this.setState({
 					currentSong: json
 				}, () => {
@@ -98,8 +106,11 @@ export default class MusicApp extends Component {
 	skipSpeech = async () => {
 		this.skipSpeechReq = request('POST', '/song', { song: this.state.currentSong });
 		let response = await this.skipSpeechReq;
-		if(response === 200) {
+		if(response === 202) {
 			this.getNextSpeech();
+		}
+		else {
+			console.error('ruh roh');
 		}
 	}
 
@@ -117,6 +128,10 @@ export default class MusicApp extends Component {
 
 		let started = this.state.started ? null :
 		<button onClick={this.startRating} className='btn btn-primary'>Start Rating</button>;
+
+		let skipButton = this.state.currentSong.url ? 
+			<button onClick={this.skipSpeech}>Skip Speech</button>
+		:   null;
 		return(
 			<div>
 				{/*<Navbar />*/}
@@ -126,6 +141,7 @@ export default class MusicApp extends Component {
 						<audio ref='audio' src={this.state.currentSong.url} controls /> : 
 						<audio ref='audio' controls /> 
 					}
+					{skipButton}
 				</div>
 				{completed}
 			</div>

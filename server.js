@@ -43,6 +43,8 @@ db.once('open', async () => {
 
 	await newSpeech.save();
 
+	await User.remove({});
+
 	// Speech.findOneAndUpdate({
 	// 	url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3'
 	// }, {
@@ -92,7 +94,7 @@ db.once('open', async () => {
 					console.log('clearing user ratings');
 					await User.findOneAndUpdate({
 						username
-					}, { ratedSpeeches: [] });
+					}, { ratedSpeeches: [], skippedSpeeches: [] });
 				}
 
 				ctx.response.status = 200;
@@ -190,13 +192,11 @@ db.once('open', async () => {
 				await Promise.all([
 					Speech.findOneAndUpdate({
 						_id: payload.song.id
-					}, {
-						$inc: { skipCount: 1 }
-					}, { upsert: true }),
+					}, { $inc: { 'skipCount': 1 }	}),
 					User.findOneAndUpdate({
 						username: ctx.cookies.get('username')
 					}, {
-						$push: { skippedSpeeches: payload.song._id }
+						$addToSet: { skippedSpeeches: payload.song._id }
 					}, { upsert: true })
 				]);
 				ctx.response.status = 202;
