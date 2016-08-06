@@ -19,18 +19,18 @@ Oratio Speech Rating Interface
   * [pug](https://github.com/pugjs/pug)
    
 ### 2. Dependencies
-  * Development
-    * NodeJS v6+
-    * MongoDB
-    * babel -- `npm install -g babel-cli`
-  * Production
-    * In progress
+  * NodeJS v6+
+  * MongoDB
+  * babel -- `npm install -g babel-cli`
 
 ### 3. Build settings
-  * `./transpile_server.sh`
-  * `./transpile_app.sh`
-  * `nodemon server.comp.js`
-
+  * Development
+    * `./transpile_server.sh`
+    * `./transpile_app.sh`
+    * `nodemon server.comp.js`
+  * Production
+    * In progress
+  
 ### 4. Usage information
   * Point your browser to `http://localhost:8080/` to access the app.
   * Enter a username to be directed to the rating page.  Click the
