@@ -30,7 +30,7 @@ db.on('error', err => {
 db.once('open', async () => {
 	console.log('Connected to mongodb.');
 
-	// remove this
+	/*** remove this ***/
 	await Speech.remove({});
 	let allSpeeches = await Speech.find({});
 	console.log(allSpeeches);
@@ -45,14 +45,7 @@ db.once('open', async () => {
 
 	await User.remove({});
 
-	// Speech.findOneAndUpdate({
-	// 	url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3'
-	// }, {
-	// 	id: 0,
-	// 	url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
-	// 	ratings: [],
-	// 	skipCount: 0
-	// }, { upsert: true });
+	/******************/
 
 	const Koa = require('koa'); 
 	const app = new Koa();
