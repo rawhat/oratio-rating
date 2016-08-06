@@ -5,8 +5,9 @@ Oratio Speech Rating Interface
 
 ### Contents
 1. Technologies
-2. Build settings
-3. Usage information
+2. Dependencies
+3. Build settings
+4. Usage information
 
 ### 1. Technologies
   * koa2
@@ -17,12 +18,17 @@ Oratio Speech Rating Interface
   * react
   * pug
    
-### 2. Build settings
+### 2. Dependencies
+  * NodeJS 6+
+  * MongoDB
+  * babel -- `npm install -g babel-cli`
+
+### 3. Build settings
   * `./transpile_server.sh`
   * `./transpile_app.sh`
   * `nodemon server.comp.js`
-	
-### 3. Usage information
+
+### 4. Usage information
   * Point your browser to `http://localhost:8080/` to access the app.
   * Enter a username to be directed to the rating page.  Click the
 	`Start Rating` button to begin rating speeches.  At the end of the
