@@ -19,7 +19,7 @@ Oratio Speech Rating Interface
   * pug
    
 ### 2. Dependencies
-  * NodeJS 6+
+  * NodeJS v6+
   * MongoDB
   * babel -- `npm install -g babel-cli`
 
