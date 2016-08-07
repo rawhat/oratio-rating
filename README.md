@@ -24,6 +24,7 @@ Oratio Speech Rating Interface
   * babel -- `npm install -g babel-cli`
 
 ### 3. Build settings
+  * Install NodeJS dependencies with `npm install`
   * Development
     * `./transpile_server.sh`
     * `./transpile_app.sh`
