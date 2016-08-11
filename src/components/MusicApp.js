@@ -2,9 +2,10 @@ import React, { Component } from 'react';
 
 import _ from 'lodash';
 
-import {
-	request // (method, url, data)
-} from './xhr.js';
+// (method, url, data)
+import { request } from './xhr.js';
+
+import RatingInput from './rating.js';
 
 // current username
 // global.username
@@ -18,6 +19,12 @@ export default class MusicApp extends Component {
 			completed: false,
 			currentSong: {}
 		};
+
+		this.ratings = [
+			'Tone',
+			'Volume',
+			'Energy'
+		]
 	}
 
 	static defaultProps = {
@@ -115,35 +122,44 @@ export default class MusicApp extends Component {
 	}
 
 	render = () => {
-		let completed = this.state.completed ?
-			<form style={{ textAlign: 'center' }} ref='ratingForm' onSubmit={this.state.currRating !== -1 ? this.rateSpeech : (e) => { e.preventDefault(); }}>
-				{_.map(_.range(1, 6), index => {
-					return <label key={index}><input style={{display: 'inline-block'}} type='radio' name='rating' value={index} onChange={this.changeRating} />{index}</label>;
+		let completed = //this.state.completed ?
+			true ?
+			<form className="form-horizontal" style={{ textAlign: 'center', marginTop: 10 }} ref='ratingForm' onSubmit={this.state.currRating !== -1 ? this.rateSpeech : (e) => { e.preventDefault(); }}>
+				{_.map(this.ratings, (rating) => {
+					return <RatingInput label={rating} />;
 				})}
-				<br /><br /><br />
-				<button className='btn btn-primary' type='submit'>Rate</button>
+				<button className='btn btn-primary' type='submit' tabIndex={this.ratings.length + 1}>Rate</button>
 			</form>
 			:
 			null;
 
 		let started = this.state.started ? null :
-		<button onClick={this.startRating} className='btn btn-primary'>Start Rating</button>;
+		<button style={{ margin: '0 auto' }} onClick={this.startRating} className='btn btn-success'>Start Rating</button>;
 
-		let skipButton = this.state.currentSong.url ? 
-			<button onClick={this.skipSpeech}>Skip Speech</button>
+		let skipButton = //this.state.currentSong.url ? 
+			true ?
+			<button className='btn btn-warning' onClick={this.skipSpeech}>Skip Speech</button>
 		:   null;
 		return(
 			<div>
 				{/*<Navbar />*/}
-				{started}
-				<div style={{width: '75%', margin: '0 auto', textAlign: 'center'}}>
+				<div className="row" style={{ textAlign: 'center', margin: '20px auto' }}>
+					{started}
+				</div>
+				<div className='row' style={{width: '75%', margin: '0 auto', textAlign: 'center'}}>
 					{ this.state.currentSong.url ? 
 						<audio ref='audio' src={this.state.currentSong.url} controls /> : 
 						<audio ref='audio' controls /> 
 					}
+				</div>
+				<div className="row" style={{ textAlign: 'center' }}>
 					{skipButton}
 				</div>
-				{completed}
+				<div className="row">
+					<div className="col-md-2 col-md-offset-5">
+						{completed}
+					</div>
+				</div>
 			</div>
 		);
 	}
