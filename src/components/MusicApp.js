@@ -115,11 +115,15 @@ export default class MusicApp extends Component {
 			this.refs.audio.pause();
 			this.refs.audio.src = '';
 
-			this.getNext = request('GET', '/speech');
-			let results = await this.getNext;
-			let json = await JSON.parse(results);
 			this.setState({
-				sample: json
+				sample: {}
+			}, async () => {
+				this.next = request('GET', '/speech');
+				let results = await this.next;
+				let json = await JSON.parse(results);
+				this.setState({
+					sample: json
+				});
 			});
 		}
 		catch (e) {
@@ -201,7 +205,7 @@ export default class MusicApp extends Component {
 								<tbody>
 									{_.map(this.state.sample.samples, (sample, index) => {
 										return <RatingInput
-											key={sample.url}
+											key={sample._id}
 											index={index}
 											speechUrl={sample.url}
 											playSample={this.playSpeech}
@@ -213,7 +217,7 @@ export default class MusicApp extends Component {
 							</table>
 						</div>
 						<div className="row" style={{marginTop: 10, textAlign: 'center'}}>
-							<button className="btn btn-default" onClick={this.rateSample}>Rate Set</button>
+							<button className="btn btn-default" onClick={this.state.sample._id ? this.rateSample : this.getNextSample}>Rate Set</button>
 						</div>
 					</div>
 				</div>

@@ -194,7 +194,30 @@ db.once('open', async () => {
 				** }
 				*/
 				let payload = JSON.parse(ctx.body);
-				console.log(payload);
+				let username = ctx.cookies.get('username');
+				//console.log(payload);
+
+				let user = await User.findOne({
+					username: username
+				});
+
+				let sample = await Sample.findOne({
+					_id: payload._id
+				});
+
+				sample.samples.forEach((__, index) => {
+					sample.samples[index] = payload.samples[index];
+				});
+				//console.log(sample);
+				await Promise.all([
+					sample.save(),
+					User.findOneAndUpdate({
+						username: username
+					}, { $push: { ratedSamples: sample._id } })
+				]);
+
+				ctx.body = '';
+				ctx.response.status = 200;
 			}
 			catch (e) {
 				ctx.body = e;
