@@ -87,7 +87,7 @@ export default class MusicApp extends Component {
 			return rating.monotony && rating.clarity;
 		})) {
 			try {
-				let samples = _.map(this.state.ratings, (rating, index) => {
+				/*let samples = _.map(this.state.ratings, (rating, index) => {
 					return Object.assign({}, this.state.sample.samples[index], { 
 						monotonies: this.state.sample.samples[index].monotonies.concat(rating.monotony),
 						clarities: this.state.sample.samples[index].clarities.concat(rating.clarity)
@@ -100,6 +100,17 @@ export default class MusicApp extends Component {
 				let response = await this.sendRating;
 				console.log(response);
 				if(response) {
+					this.getNextSample();
+				}*/
+
+				let ratingObj = {
+					sampleId: this.state.sample._id,
+					ratings: this.state.ratings
+				};
+
+				this.sendRating = request('PUT', '/speech', ratingObj);
+				let response = await this.sendRating;
+				if(!response) {
 					this.getNextSample();
 				}
 			}
@@ -180,10 +191,10 @@ export default class MusicApp extends Component {
 							</div>
 						</div>
 						<div className="row">
-							<ControlSpeech
+							{this.state.sample.control ? <ControlSpeech
 								control={this.state.sample.control}
 								playSpeech={this.playSpeech}
-							/>
+							/> : null}
 						</div>
 					</div>
 					<div className="col-md-8">
@@ -205,7 +216,7 @@ export default class MusicApp extends Component {
 								<tbody>
 									{_.map(this.state.sample.samples, (sample, index) => {
 										return <RatingInput
-											key={sample._id}
+											key={sample._id ? sample._id : sample.url}
 											index={index}
 											speechUrl={sample.url}
 											playSample={this.playSpeech}

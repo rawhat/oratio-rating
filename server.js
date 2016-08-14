@@ -5,9 +5,14 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
+const userRatingSchema = new Schema({
+	sampleId: String,
+	ratings: Array
+});
+
 const userSchema = new Schema({
 	username: String,
-	ratedSamples: Array,
+	ratedSamples: [userRatingSchema],
 	skippedSamples: Array
 });
 
@@ -30,6 +35,7 @@ const sampleSchema = new Schema({
 
 const User = mongoose.model('User', userSchema);
 const Sample = mongoose.model('Sample', sampleSchema);
+const Rating = mongoose.model('Rating', userRatingSchema);
 
 mongoose.Promise = Promise;
 mongoose.connect('mongodb://localhost/oratio');
@@ -160,6 +166,12 @@ db.once('open', async () => {
 				console.log(currUser);
 
 				let ratedSamples = currUser.ratedSamples || [];
+				if(ratedSamples.length) {
+					ratedSamples = ratedSamples.map(ratedSamples, sample => {
+						return sample.sampleId;
+					});
+				}
+
 
 				let nextSpeech = await Sample.findOne({
 					_id: { $nin: ratedSamples }
@@ -202,24 +214,31 @@ db.once('open', async () => {
 				});
 
 				let sample = await Sample.findOne({
-					_id: payload._id
+					_id: payload.sampleId
 				});
 
 				sample.samples.forEach((__, index) => {
-					sample.samples[index] = payload.samples[index];
+					sample.samples[index].monotonies.push(payload.ratings[index].monotony);
+					sample.samples[index].clarities.push(payload.ratings[index].clarity);
 				});
-				//console.log(sample);
+
+				let rating = new Rating(Object.assign({}, {
+					sampleId: payload.sampleId,
+					ratings: payload.ratings
+				}));
+
+				user.ratedSamples.push(rating);
+
 				await Promise.all([
 					sample.save(),
-					User.findOneAndUpdate({
-						username: username
-					}, { $push: { ratedSamples: sample._id } })
+					user.save()
 				]);
 
 				ctx.body = '';
 				ctx.response.status = 200;
 			}
 			catch (e) {
+				console.error('Error', e);
 				ctx.body = e;
 			}
 		})
