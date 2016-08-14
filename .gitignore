@@ -1,3 +1,3 @@
 node_modules/*
 server.comp.js
-static/js/*.min.js
+static/js/main.min.js
