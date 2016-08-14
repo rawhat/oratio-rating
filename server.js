@@ -7,17 +7,29 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
 	username: String,
-	ratedSpeeches: Array,
-	skippedSpeeches: Array
+	ratedSamples: Array,
+	skippedSamples: Array
+});
+
+const controlSchema = new Schema({
+	url: String,
+	monotony: Number,
+	clarity: Number
 });
 
 const speechSchema = new Schema({
 	url: String,
-	ratings: Array
+	monotonies: Array,
+	clarities: Array
+});
+
+const sampleSchema = new Schema({
+	control: controlSchema,
+	samples: [speechSchema]
 });
 
 const User = mongoose.model('User', userSchema);
-const Speech = mongoose.model('Speech', speechSchema);
+const Sample = mongoose.model('Sample', sampleSchema);
 
 mongoose.Promise = Promise;
 mongoose.connect('mongodb://localhost/oratio');
@@ -31,17 +43,51 @@ db.once('open', async () => {
 	console.log('Connected to mongodb.');
 
 	/*** remove this ***/
-	await Speech.remove({});
-	let allSpeeches = await Speech.find({});
-	console.log(allSpeeches);
+	await Sample.remove({});
+	let allSamples = await Sample.find({});
+	console.log(allSamples);
 
-	let newSpeech = new Speech({
-		url: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
-		ratings: [],
-		skipCount: 0
+	let newSample = new Sample({
+		control: {
+			url: 'ctrl',
+			monotony: 2,
+			clarity: 2
+		},
+		samples: [
+			{
+				id: 0,
+				url: '1',
+				monotonies: [],
+				clarities: []
+			},
+			{
+				id: 1,
+				url: '2',
+				monotonies: [],
+				clarities: []
+			},
+			{
+				id: 2,
+				url: '3',
+				monotonies: [],
+				clarities: []
+			},
+			{
+				id: 3,
+				url: '4',
+				monotonies: [],
+				clarities: []
+			},
+			{
+				id: 4,
+				url: '5',
+				monotonies: [],
+				clarities: []
+			}
+		]
 	});
 
-	await newSpeech.save();
+	await newSample.save();
 
 	await User.remove({});
 
@@ -100,7 +146,7 @@ db.once('open', async () => {
 			ctx.cookies.set('username', '');
 			ctx.response.status = 200;
 		})
-		.get('/song', async (ctx) => {
+		.get('/speech', async (ctx) => {
 			// mongoose call -- get random song not voted on
 			try {
 				let username = ctx.cookies.get('username');
@@ -113,10 +159,10 @@ db.once('open', async () => {
 
 				console.log(currUser);
 
-				let ratedSpeeches = currUser.ratedSpeeches || [];
+				let ratedSamples = currUser.ratedSamples || [];
 
-				let nextSpeech = await Speech.findOne({
-					_id: { $nin: ratedSpeeches }
+				let nextSpeech = await Sample.findOne({
+					_id: { $nin: ratedSamples }
 				});
 
 				if(!nextSpeech){
@@ -138,8 +184,8 @@ db.once('open', async () => {
 				skipCount: 0
 			};*/
 		})
-		// rate song
-		.put('/song', async (ctx) => {
+		// rate sample
+		.put('/speech', async (ctx) => {
 			try {
 				/*
 				** {
@@ -148,42 +194,20 @@ db.once('open', async () => {
 				** }
 				*/
 				let payload = JSON.parse(ctx.body);
-				// console.log(payload);
-				// mongoose call -- rate song
-				await Promise.all([
-					Speech.findOneAndUpdate({
-						_id: payload.song.id
-					}, {
-						$push: { ratings: payload.rating }
-					}),
-					User.findOneAndUpdate({
-						username: ctx.cookies.get('username')
-					}, {
-						$push: { ratedSpeeches: payload.song._id }
-					})
-				]);
-
-				let allSpeeches = await Speech.find({});
-				let allUsers = await User.find({});
-
-				console.log('speeches', allSpeeches);
-				console.log('users', allUsers);
-
-				ctx.response.status = 202;
-				ctx.body = '';
+				console.log(payload);
 			}
 			catch (e) {
 				ctx.body = e;
 			}
 		})
 		// skip song
-		.post('/song', async (ctx) => {
+		.post('/speech', async (ctx) => {
 			try {
 				let payload = JSON.parse(ctx.body);
 				// console.log(payload);
 				// mongoose call -- skip song
 				await Promise.all([
-					Speech.findOneAndUpdate({
+					Sample.findOneAndUpdate({
 						_id: payload.song.id
 					}, { $inc: { 'skipCount': 1 }	}),
 					User.findOneAndUpdate({

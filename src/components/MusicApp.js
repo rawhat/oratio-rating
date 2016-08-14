@@ -6,6 +6,7 @@ import _ from 'lodash';
 import { request } from './xhr.js';
 
 import RatingInput from './rating.js';
+import ControlSpeech from './control.js';
 
 // current username
 // global.username
@@ -13,22 +14,51 @@ import RatingInput from './rating.js';
 export default class MusicApp extends Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			currRating: -1,
-			started: false,
-			completed: false,
-			currentSong: {}
-		};
-
-		this.ratings = [
-			'Tone',
-			'Volume',
-			'Energy'
-		]
 	}
 
-	static defaultProps = {
-
+	state = {
+		currentSpeech: 'http://ia800805.us.archive.org/27/items/NeverGonnaGiveYouUp/jocofullinterview41.mp3',
+		sample: {
+			id: 0,
+			control: {
+				url: 'ctrl',
+				monotony: 2,
+				clarity: 2
+			},
+			samples: [
+				{
+					id: 0,
+					url: '1',
+					monotonies: [],
+					clarities: []
+				},
+				{
+					id: 1,
+					url: '2',
+					monotonies: [],
+					clarities: []
+				},
+				{
+					id: 2,
+					url: '3',
+					monotonies: [],
+					clarities: []
+				},
+				{
+					id: 3,
+					url: '4',
+					monotonies: [],
+					clarities: []
+				},
+				{
+					id: 4,
+					url: '5',
+					monotonies: [],
+					clarities: []
+				}
+			]
+		},
+		ratings: [ {}, {}, {}, {}, {} ]
 	}
 
 	componentDidMount = () => {
@@ -52,66 +82,53 @@ export default class MusicApp extends Component {
 		});
 	}
 
-	changeRating = (e) => {
-		console.log(e.target.value);
-		this.setState({
-			currRating: e.target.value
-		});
+	rateSample = async () => {
+		if(_.every(this.state.ratings, rating => {
+			return rating.monotony && rating.clarity;
+		})) {
+			try {
+				let samples = _.map(this.state.ratings, (rating, index) => {
+					return Object.assign({}, this.state.sample.samples[index], { 
+						monotonies: this.state.sample.samples[index].monotonies.concat(rating.monotony),
+						clarities: this.state.sample.samples[index].clarities.concat(rating.clarity)
+					});
+				});
+
+				let sample = Object.assign({}, this.state.sample, { samples });
+
+				this.sendRating = request('PUT', '/speech', sample);
+				let response = await this.sendRating;
+				console.log(response);
+				if(response) {
+					this.getNextSample();
+				}
+			}
+			catch(e) {
+				console.error(e);
+			}
+		}
 	}
 
-	rateSpeech = async (e) => {
-		e.preventDefault();
-		console.log('you rated this speech ' + this.state.currRating);
-
-		let rate = request('PUT', '/song', { song: this.state.currentSong, rating: this.state.currRating });
-		let response = await rate;
-
-		console.log(response);
-
-		this.setState({
-			completed: false
-		}, () => {
-			this.getNextSpeech();
-		});
-	}
-
-	startRating = () => {
-		this.setState({
-			started: true
-		}, () => {
-			this.getNextSpeech();
-		});
-	}
-
-	getNextSpeech = async () => {
+	getNextSample = async () => {
 		// make API call
 		try {
 			this.refs.audio.pause();
 			this.refs.audio.src = '';
 
-			this.getSpeech = request('GET', '/song');
-			let response = await this.getSpeech;
-			let json = await JSON.parse(response);
-			if(json){
-				//this.refs.audio.src = json.url;
-				this.setState({
-					currentSong: json
-				}, () => {
-					this.refs.audio.play();
-				});
-			}
+			this.getNext = request('GET', '/speech');
+			let results = await this.getNext;
+			let json = await JSON.parse(results);
+			this.setState({
+				sample: json
+			});
 		}
 		catch (e) {
-			this.setState({
-				currentSong: {}
-			}, () => {
-				this.refs.audio.src = '';
-			});
+			console.error(e);
 		}
 	}
 
 	skipSpeech = async () => {
-		this.skipSpeechReq = request('POST', '/song', { song: this.state.currentSong });
+		this.skipSpeechReq = request('POST', '/speech', { song: this.state.currentSong });
 		let response = await this.skipSpeechReq;
 		if(response === 202) {
 			this.getNextSpeech();
@@ -121,43 +138,83 @@ export default class MusicApp extends Component {
 		}
 	}
 
+	playSpeech = (url) => {
+		console.log(url);
+	}
+
+	updateMonotony = (index, event) => {
+		this.setState({
+			ratings: [
+				...this.state.ratings.slice(0, index),
+				Object.assign({}, this.state.ratings[index], { monotony: event.target.value }),
+				...this.state.ratings.slice(index+1)
+			]
+		});
+		//console.log(`monotony for ${index} is ${event.target.value}`);
+	}
+
+	updateClarity = (index, event) => {
+		this.setState({
+			ratings: [
+				...this.state.ratings.slice(0, index),
+				Object.assign({}, this.state.ratings[index], { clarity: event.target.value }),
+				...this.state.ratings.slice(index+1)
+			]
+		});
+		//console.log(`clarity for ${index} is ${event.target.value}`);
+	}
+
 	render = () => {
-		let completed = //this.state.completed ?
-			true ?
-			<form className="form-horizontal" style={{ textAlign: 'center', marginTop: 10 }} ref='ratingForm' onSubmit={this.state.currRating !== -1 ? this.rateSpeech : (e) => { e.preventDefault(); }}>
-				{_.map(this.ratings, (rating) => {
-					return <RatingInput label={rating} />;
-				})}
-				<button className='btn btn-primary' type='submit' tabIndex={this.ratings.length + 1}>Rate</button>
-			</form>
-			:
-			null;
-
-		let started = this.state.started ? null :
-		<button style={{ margin: '0 auto' }} onClick={this.startRating} className='btn btn-success'>Start Rating</button>;
-
-		let skipButton = //this.state.currentSong.url ? 
-			true ?
-			<button className='btn btn-warning' onClick={this.skipSpeech}>Skip Speech</button>
-		:   null;
 		return(
-			<div>
+			<div className='container-fluid'>
 				{/*<Navbar />*/}
-				<div className="row" style={{ textAlign: 'center', margin: '20px auto' }}>
-					{started}
-				</div>
-				<div className='row' style={{width: '75%', margin: '0 auto', textAlign: 'center'}}>
-					{ this.state.currentSong.url ? 
-						<audio ref='audio' src={this.state.currentSong.url} controls /> : 
-						<audio ref='audio' controls /> 
-					}
-				</div>
-				<div className="row" style={{ textAlign: 'center' }}>
-					{skipButton}
-				</div>
-				<div className="row">
-					<div className="col-md-2 col-md-offset-5">
-						{completed}
+				<div className="row" style={{marginTop: 15}}>
+					<div className="col-md-4">
+						<div className="row">
+							<div className="panel panel-default">
+								<div className="panel-body"><h4>Sample #{this.state.currentSample}</h4></div>
+							</div>
+						</div>
+						<div className="row">
+							<ControlSpeech
+								control={this.state.sample.control}
+								playSpeech={this.playSpeech}
+							/>
+						</div>
+					</div>
+					<div className="col-md-8">
+						<div className="row" style={{textAlign: 'center'}}>
+							<audio src={this.state.currentSpeech} ref='audio' controls />
+						</div>
+						<div className="row" style={{textAlign: 'center'}}>
+							<h4>Sample Speeches</h4>
+						</div>
+						<div className="row">
+							<table style={{width: '100%'}}>
+								<thead>
+									<tr>
+										<th>Samples</th>
+										<th>Monotony</th>
+										<th>Clarity</th>
+									</tr>
+								</thead>
+								<tbody>
+									{_.map(this.state.sample.samples, (sample, index) => {
+										return <RatingInput
+											key={sample.url}
+											index={index}
+											speechUrl={sample.url}
+											playSample={this.playSpeech}
+											updateMonotony={this.updateMonotony}
+											updateClarity={this.updateClarity}
+										/>;
+									})}
+								</tbody>
+							</table>
+						</div>
+						<div className="row" style={{marginTop: 10, textAlign: 'center'}}>
+							<button className="btn btn-default" onClick={this.rateSample}>Rate Set</button>
+						</div>
 					</div>
 				</div>
 			</div>

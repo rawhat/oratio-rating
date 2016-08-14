@@ -1,33 +1,26 @@
-import React, { Component } from 'react';
+import React from 'react';
 
-export default class RatingInput extends Component {
-	constructor(props) {
-		super(props);
-		this.state = {
-			rating: -1
-		};
-	}
-
-	static defaultProps = {
-		label: ''
-	}
-
-	changeRating = (event) => {
-		this.setState({
-			rating: event.target.value
-		});
-	}
-
-	render = () => {
-		return(
-			<div className="form-group">
-				<label className='col-md-4' htmlFor={this.refs.rating}>{this.props.label}</label>
-				<input className='col-md-4' ref='rating' onChange={this.changeRating} type="text" tabIndex={0} />
-				<div className="col-md-4"></div>
-			</div>
-		);
-	}
-}
-RatingInput.propTypes = {
-	label: React.PropTypes.string
+const RatingInput = ({ index, speechUrl, playSample, updateMonotony, updateClarity }) => {
+	return(
+		<tr>
+			<td>
+				<button className="btn btn-default" onClick={playSample.bind(null, speechUrl)}>Sample {index}</button>
+			</td>
+			<td>
+				<input type="text" onChange={updateMonotony.bind(null, index)} />
+			</td>
+			<td>
+				<input type="text" onChange={updateClarity.bind(null, index)}/>
+			</td>
+		</tr>
+	);
 };
+RatingInput.propTypes = {
+	index: React.PropTypes.number,
+	speechUrl: React.PropTypes.string,
+	playSample: React.PropTypes.func,
+	updateMonotony: React.PropTypes.func,
+	updateClarity: React.PropTypes.func
+};
+
+export default RatingInput;
