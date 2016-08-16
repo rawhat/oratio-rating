@@ -154,7 +154,11 @@ export default class MusicApp extends Component {
 	}
 
 	playSpeech = (url) => {
-		console.log(url);
+		if(url) {
+			this.refs.audio.pause();
+			this.refs.audio.src = url;
+			this.refs.audio.play();
+		}
 	}
 
 	updateMonotony = (index, event) => {

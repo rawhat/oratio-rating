@@ -49,6 +49,7 @@ db.once('open', async () => {
 	console.log('Connected to mongodb.');
 
 	/*** remove this ***/
+	/*
 	await Sample.remove({});
 	let allSamples = await Sample.find({});
 	console.log(allSamples);
@@ -96,7 +97,7 @@ db.once('open', async () => {
 	await newSample.save();
 
 	await User.remove({});
-
+	*/
 	/******************/
 
 	const Koa = require('koa'); 
