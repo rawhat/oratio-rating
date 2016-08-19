@@ -24,8 +24,8 @@ const controlSchema = new Schema({
 
 const speechSchema = new Schema({
 	url: String,
-	monotonies: Array,
-	clarities: Array
+	monotony: Array,
+	clarity: Array
 });
 
 const sampleSchema = new Schema({
@@ -170,7 +170,7 @@ db.once('open', async () => {
 				let ratedSamples = currUser.ratedSamples || [];
 				if(ratedSamples.length) {
 					ratedSamples = ratedSamples.map(sample => {
-						return sample._id;
+						return sample.sampleId;
 					});
 				}
 
