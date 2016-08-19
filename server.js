@@ -29,6 +29,7 @@ const speechSchema = new Schema({
 });
 
 const sampleSchema = new Schema({
+	sampleNumber: Number,
 	control: controlSchema,
 	samples: [speechSchema]
 });
