@@ -11,6 +11,8 @@ import ControlSpeech from './control.js';
 // current username
 // global.username
 
+const baseUrl = 'http://45.33.74.141:8000/datasets/temp/unique_data_test/ted_trim_rated/trimmed_wav/';
+
 export default class MusicApp extends Component {
 	constructor(props) {
 		super(props);
@@ -156,7 +158,7 @@ export default class MusicApp extends Component {
 	playSpeech = (url) => {
 		if(url) {
 			this.refs.audio.pause();
-			this.refs.audio.src = url;
+			this.refs.audio.src = baseUrl + url;
 			this.refs.audio.play();
 		}
 	}
