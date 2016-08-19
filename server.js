@@ -220,8 +220,8 @@ db.once('open', async () => {
 				});
 
 				sample.samples.forEach((__, index) => {
-					sample.samples[index].monotonies.push(payload.ratings[index].monotony);
-					sample.samples[index].clarities.push(payload.ratings[index].clarity);
+					sample.samples[index].monotony.push(payload.ratings[index].monotony);
+					sample.samples[index].clarity.push(payload.ratings[index].clarity);
 				});
 
 				let rating = new Rating(Object.assign({}, {
