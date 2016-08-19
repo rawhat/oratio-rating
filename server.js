@@ -169,8 +169,8 @@ db.once('open', async () => {
 
 				let ratedSamples = currUser.ratedSamples || [];
 				if(ratedSamples.length) {
-					ratedSamples = ratedSamples.map(ratedSamples, sample => {
-						return sample.sampleId;
+					ratedSamples = ratedSamples.map(sample => {
+						return sample._id;
 					});
 				}
 
